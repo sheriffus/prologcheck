@@ -4,6 +4,7 @@ PrologCheck - Property-Based Testing in Prolog. FLOPS 2014: 1-17)
 
 
 # References
+```bibtex
 @inproceedings{DBLP:conf/flops/AmaralFC14,
   author    = {Cl{\'{a}}udio Amaral and
                M{\'{a}}rio Florido and
@@ -20,3 +21,4 @@ PrologCheck - Property-Based Testing in Prolog. FLOPS 2014: 1-17)
   biburl    = {https://dblp.org/rec/bib/conf/flops/AmaralFC14},
   bibsource = {dblp computer science bibliography, https://dblp.org}
 }
+```
