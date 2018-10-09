@@ -33,12 +33,12 @@ where
     _ARGS_ are parameters of the generator
 and 
     _SAMPLE_ unifies with a sample term of the form
-        _sample_ ( - _VALUE_, ? _SHRINKSTRATEGY_ )
+        _sample_ ( - _VALUE_, ? _SHRINKER_ )
     where 
         _Value_ is instantiated with a pseudo-randomly/automatically generated
         value of the intended domain
     and
-        _SHRINKSTRATEGY_ unifies with the shrinking strategy, name of the predicate
+        _SHRINKER_ unifies with the shrinking strategy, name of the predicate
         that can be used to shrink the generated value inside the generator domain;
         generators implement a default shrink strategy and can be made to accept
         other strategies
@@ -52,9 +52,12 @@ and
 
 :- use_module(library(random)).
 
-/** @pred choose(+ _MIN_, + _MAX_, ? _SAMPLE_ = , ? _\_SIZE_)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/** @pred choose(+ _MIN_, + _MAX_, ? _SAMPLE_ = sample( - _VALUE_, +- _SHRINKER_ ), ? _\_SIZE_)
 
  Generates a random element in the given inclusive range.
+ Default shrinking strategy towards lower bound.
 
 Generated value in the range `[MIN...MAX]`. Property inherited from
 pred random/3 that "if both  _MIN_ and  _MAX_ are integers then  _VALUE_
@@ -70,7 +73,7 @@ choose(Min,Max, sample(A,ShrinkStrategy), _Size) :-
 
 /** @pred shrinkLow(+ _LOW_, + _VALUE_, ? _RESULT_)
 
- Shrink an integer towards lower values.
+ Shrink an integer towards a lower value.
 
 Unify _RESULT_ with _LOW_ or, recursively, to the _RESULT_ of the shrink
 of _VALUE_ to the middle point of the interval. _RESULT_ is in range.
@@ -82,9 +85,9 @@ shrinkLow(Low, X0, X) :-
     Mid > Low, Mid < X0,
     shrinkLow(Mid, X0, X).
 
-/** @pred shrinkHigh(+ _HIGH_, + _VALUE_, ? _RESULT_)
+/** @pred shrinkHigh(+ _HIGH_, + _VALUE_, - _RESULT_)
   
- Shrink an integer towards higher values.
+ Shrink an integer towards a higher value.
 
 Unify _RESULT_ with _HIGH_ or, recursively, to the _RESULT_ of the shrink
 of _VALUE_ to the middle point of the interval. _RESULT_ is in range.
@@ -95,3 +98,29 @@ shrinkHigh(High, X0, X) :-
     Mid is (X0+High)//2,
     Mid < High, Mid > X0,
     shrinkHigh(Mid, X0, X).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/** @pred int(? _SAMPLE_ = sample( - _VALUE_, +- _SHRINKER_ ) , + _SIZE_)
+
+ Generate an integer between -Size and Size inclusive range.
+ Default shrinking strategy towards 0.
+
+*/
+int(Size, sample(X,shrinkInt)) :-
+    Min is -Size,
+    Max is Size,
+    choose(Min, Max, _, sample(X,_)).
+
+/** @pred shrinkInt(+ _VALUE_, - _RESULT_ )
+
+ Shrink an integer absolute value towards 0.
+
+*/
+shrinkInt(X0, X) :-
+    X0 > 0, !, shrinkLow(0, X0, X).
+shrinkInt(X0, NX0) :-
+    X0 < 0, NX0 is -X0.
+shrinkInt(X0, X) :-
+    X0 < 0, shrinkHigh(0, X0, X).
+
