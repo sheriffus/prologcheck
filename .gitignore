@@ -1,0 +1,7 @@
+# local backups and stuff
+bak*
+*.bak
+
+# emacs temporary files
+*~
+
