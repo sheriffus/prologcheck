@@ -3,6 +3,20 @@
 PrologCheck - Property-Based Testing in Prolog. FLOPS 2014: 1-17)
 
 
+# Documentation
+
+For documentation, we can use a container of the `docker-doxygen-yap` docker image
+to process the configuration and build html, xml and latex sources.
+
+The configuration file was generated with the following command
+
+$ docker run -v `pwd`/code/:/code/  \
+             -v `pwd`/docs/:/docs/  \
+             -v `pwd`/docs/config/:/config/ \
+             -it doxy-yap_image_ub1804 \
+             doxygen-yap -g /config/doxy_config_file.cfg
+
+
 # References
 ```bibtex
 @inproceedings{DBLP:conf/flops/AmaralFC14,
