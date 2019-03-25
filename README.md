@@ -16,16 +16,16 @@ $ docker run -v `pwd`/code/:/code/  \
              -it doxy-yap_image_ub1804 \
              doxygen-yap -g /config/doxy_config_file.cfg
 
-             You con diff the automatically generated config file if you are curious about what
-             changes were made, but it is mostly the default values.
+You con diff the automatically generated config file if you are curious about what
+changes were made, but it is mostly the default values.
 
-             The documentation is built with the command
+The documentation is built with the command
 
-             $ docker run -v `pwd`/src/:/code/  \
-                          -v `pwd`/docs/:/docs/  \
-                          -v `pwd`/docs/config/:/config/ \
-                          -it doxy-yap_image_ub1804 \
-                          doxygen-yap  /config/doxy_config_file.cfg
+$ docker run -v `pwd`/src/:/code/  \
+             -v `pwd`/docs/:/docs/  \
+             -v `pwd`/docs/config/:/config/ \
+             -it doxy-yap_image_ub1804 \
+             doxygen-yap  /config/doxy_config_file.cfg
 
 
 # References
