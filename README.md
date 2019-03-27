@@ -10,7 +10,7 @@ to process the configuration and build html, xml and latex sources.
 
 The configuration file was generated with the following command
 
-$ docker run -v `pwd`/code/:/code/  \
+$ docker run -v `pwd`/src/:/code/  \
              -v `pwd`/docs/:/docs/  \
              -v `pwd`/docs/config/:/config/ \
              -it doxy-yap_image_ub1804 \
