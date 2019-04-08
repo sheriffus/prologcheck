@@ -42,5 +42,6 @@
          [
          ]).
 
+:- reconsult(context).
 
 %% * @}
