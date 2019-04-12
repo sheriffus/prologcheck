@@ -11,7 +11,7 @@
 **************************************************************************
 *
 * File:     context.yap
-* Last rev: 2019/04/04
+* Last rev: 2019/04/08
 * mods:
 * comments: PrologCheck runtime state of executing properties
 *
@@ -19,14 +19,15 @@
 
 
 /** @defgroup Context Property execution runtime state
+@ingroup PrologCheck
 @{
 
 PrologCheck internal module that implements and manages auxiliary records
 containing the state needed for executing a test of a property.
 
-~~~~~~~~~~~~~~~~~~~~~{.yap}
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
 {
-  ctx
+  record ctx
 }
 ~~~~~~~~~~~~~~~~~~~~~
 \internal
@@ -40,17 +41,32 @@ TODO, printers     :: [stats_printer()]                 % not used
 
 */
 
+/**
+ * @file   context.yap
+ * @author Claudio Amaral <coa@dcc.fc.up.pt>
+ * @date   Mon Apr 8 15:55 2019
+ *
+ * @brief  PrologCheck runtime state of executing properties.
+ *
+*/
 :- module(ctx).
 
 
-default({ctx
+/** @pred default(? _Context_)
+Succeeds with _Context_ unified to a context record of the default values
+defined for the runtime property context.
+*/
+default({ctx}).
 %        , [{mode, new}]
 %        , {[bindings, []]}
 %        , {[plqc]}
 %        , {[actions, []]}
 %        , {[samples, []]}
 %        , {[printers, []]}
-        }).
 
+/** @pred default_(? _Context_)
+Succeeds with _Context_ unified to a context record of the default values
+defined for the runtime property context.
+*/
 
-%% * @}
+/** @} */
