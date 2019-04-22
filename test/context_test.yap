@@ -24,11 +24,11 @@
   context:default(Context),
   context:module(Context, Module1),
   writeln({module1, Module1}),
-  % Module1 == plqc,
-  % context:new_module(Context, newmodule, NewContext),
-  % context:module(NewContext, Module2),
-  % writeln({module2, Module2}),
-  % Module2 == newmodule
-  writeln({ctx, Context})%,
-
+  Module1 == plqc,
+  context:new_module(Context, newmodule, NewContext),
+  context:module(NewContext, Module2),
+  writeln({module2, Module2}),
+  Module2 == newmodule
+  % writeln({newContext, NewContext}),
+  % writeln({tests, ok})
 .

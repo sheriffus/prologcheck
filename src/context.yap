@@ -11,7 +11,7 @@
 **************************************************************************
 *
 * File:     context.yap
-* Last rev: 2019/04/08
+* Last rev: 2019/04/22
 * mods:
 * comments: PrologCheck runtime state of executing properties
 *
@@ -54,7 +54,7 @@ TODO, printers     :: [stats_printer()]                 % not used
 /**
  * @file   context.yap
  * @author Claudio Amaral <coa@dcc.fc.up.pt>
- * @date   Mon Apr 8 15:55 2019
+ * @date   Mon Apr 22 17:55 2019
  *
  * @brief  PrologCheck runtime state of executing properties.
  *
@@ -94,6 +94,30 @@ default({ctx,
 Succeeds with _Context_ unified to a context record of the default values
 defined for the runtime property context.
 */
+
+get_first(Key, [{Key, Head}|Tail], Value, UnusedContext) :-
+    !,
+    Value = Head,
+    UnusedContext = Tail.
+get_first(Key, [{_OtherKey, _Head}|Tail], Value, UnusedContext) :-
+    get_first(Key, Tail, Value, UnusedContext).
+
+get(Key, {ctx, Context}, Value) :-
+    get_first(Key, Context, Value, UnusedContext),
+    not(get_first(Key, UnusedContext, _, _)).
+
+
+replace_first(Key, [{Key, _Head}|Tail], NewValue, ReplacedL, UnusedContextL) :-
+    !,
+    ReplacedL = [{Key, NewValue} | Tail],
+    UnusedContextL = Tail.
+replace_first(Key, [{OtherKey, Head}|Tail], NewValue, [{OtherKey, Head}|ReplacedTail], UnusedContextL) :-
+    replace_first(Key, Tail, NewValue, ReplacedTail, UnusedContextL).
+
+replace(Key, {ctx, ContextL}, NewValue, {ctx, ReplacedL}) :-
+    replace_first(Key, ContextL, NewValue, ReplacedL, UnusedContextL),
+    not(replace_first(Key, UnusedContextL, NewValue, _, _)).
+
 
 /**
 Predicate that succeeds when the given _Context_ is unifiable with a
