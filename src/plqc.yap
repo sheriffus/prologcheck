@@ -40,8 +40,43 @@
 
 :- module(plqc,
          [
+           run
          ]).
 
 :- reconsult(context).
 
-%% * @}
+%% a leaf in the property syntax tree - a predicate call
+
+/**
+@pred run(+ _Test_, + _Context_, ? _OutContext_)
+
+Predicate that runs a property, _Test_, according to a property execution
+context, _Context_.
+
+The result of the property is added to the given context in the _OutContext_.
+
+*/
+
+/**
+@pred run(+ _LeafTest_, + _Context_, ? _OutContext_)
+
+For _leaf_ properties, the goal represented by _LeafTest_ is _called_ on the
+module specified by _Context_.
+
+*/
+run_(LeafTest, Context, OutContext) :-
+  context:module(Context, M),
+  (
+    M:call(LeafTest), !,
+    %% (call(M:Test), !,
+    create_result(pass, Context, [{reason, true_prop}], Result)
+  )
+  ;
+  (
+    create_result(pass, Context, [{reason, false_prop}], Result)
+  ),
+  context:add_result(Context, Result, OutContext)
+.
+
+
+%% @}
