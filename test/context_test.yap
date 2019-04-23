@@ -28,7 +28,6 @@
   context:new_module(Context, newmodule, NewContext),
   context:module(NewContext, Module2),
   writeln({module2, Module2}),
-  Module2 == newmodule
-  % writeln({newContext, NewContext}),
-  % writeln({tests, ok})
+  Module2 == newmodule,
+  writeln({module, tests, ok})
 .
