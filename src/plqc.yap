@@ -59,11 +59,20 @@ The result of the property is added to the given context in the _OutContext_.
 */
 
 /**
+@pred run(+ _Module_:_Test_, + _Context_, ? _OutContext_)
+
+If properties or goals to be executed in the scope of the test are defined in
+other modules, the executing property represented by _Test_ is recursively ran
+with the _Module_ as its calling module context.
+*/
+run(Module:Test, Context, OutContext) :-
+  !, context:new_module(Context, Module, Context1),
+  run(Test, Context1, OutContext).
+/**
 @pred run(+ _LeafTest_, + _Context_, ? _OutContext_)
 
 For _leaf_ properties, the goal represented by _LeafTest_ is _called_ on the
 module specified by _Context_.
-
 */
 run(LeafTest, Context, OutContext) :-
   context:module(Context, M),
