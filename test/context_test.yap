@@ -19,7 +19,7 @@
 
 :- reconsult('../src/context.yap').
 
-:-
+:- (
   writeln({module, tests}),
   context:default(Context),
   context:module(Context, Module1),
@@ -29,5 +29,7 @@
   context:module(NewContext, Module2),
   writeln({module2, Module2}),
   Module2 == newmodule,
-  writeln({module, tests, ok})
+  nl,nl,writeln({module, tests, 'PASSED'}),nl,nl
+  ) ;
+  nl,nl,writeln({module, tests, 'FAILED'}),nl,nl
 .
