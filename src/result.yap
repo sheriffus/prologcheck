@@ -55,15 +55,26 @@ result_reason() :=
  * @brief  PrologCheck result handling module.
  *
 */
-:- module(result).
+:- module(result,
+          [
+            create_result/3,
+          %  get/3,
+          %  replace/4,
+          %  add/4,
+            raw/2,
+            reason/2
+          ]
+         ).
 
 :- reconsult(generic_records).
 
+% TODO - documentation
+% TODO - use generic_records to create the result record
 
 create_result(pass, {reason, true_goal}, Result) :-
   Result = {result, [{raw, pass}, {reason, true_goal}]}.
 create_result(fail, {reason, false_goal}, Result) :-
-  Result = {result, [{raw, pass}, {reason, false_goal}]}.
+  Result = {result, [{raw, fail}, {reason, false_goal}]}.
 
 
 /** @section Generics (Generic record wrapper predicates) */
