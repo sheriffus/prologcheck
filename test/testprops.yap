@@ -22,3 +22,11 @@ prop(successfull_prop) :-
 prop(failing_prop) :-
   writeln(testprop_fprop),
   X is 1+2, X == 4.
+
+prop(succ_univ_quant) :-
+  writeln(testprop_tuq),
+  X is 1+2, X == 3.
+
+prop(fail_univ_quant) :-
+  writeln(testprop_fuq),
+  X is 1+2, X == 4.

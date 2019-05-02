@@ -59,6 +59,31 @@ The result of the property is added to the given context in the _OutContext_.
 */
 
 /**
+@pred run(+ _Module_:_Test_, + _Context_, ? _OutContext_)
+
+If properties or goals to be executed in the scope of the test are defined in
+other modules, the executing property represented by _Test_ is recursively ran
+with the _Module_ as its calling module context.
+*/
+run(Module:Test, Context, OutContext) :-
+  !, context:new_module(Context, Module, Context1),
+  run(Test, Context1, OutContext).
+/**
+@pred run(+ for_all(_Gen_, _Var_, _Test_), + _Context_, ? _OutContext_)
+
+Run a test with universal quantification of a parameter.
+
+Recursively run _Test_ with occurring unbound variable _Var_ by binding a value
+from the domain of the generator _Gen_ to _Var_.
+*/
+run(for_all(Gen, Var, Test), Context, OutContext) :-
+  !, context:module(Context, Module),
+  % context:get_size(Context,Size),
+  % bind_forall(Gen, Context, Var, Size),
+  % context:bind(Context, Var, Context1),
+  % run(Test, Context1, OutContext).
+  run(Test, Context, OutContext).
+/**
 @pred run(+ prop(_Label_), + _Context_, ? _OutContext_)
 
 If a property being tested is a labelled property, it needs to be unfolded
@@ -72,16 +97,6 @@ run(prop(Label), Context, OutContext) :-
   !, context:module(Context, Module),
   clause(Module:prop(Label), Body),
   run(Body, Context, OutContext).
-/**
-@pred run(+ _Module_:_Test_, + _Context_, ? _OutContext_)
-
-If properties or goals to be executed in the scope of the test are defined in
-other modules, the executing property represented by _Test_ is recursively ran
-with the _Module_ as its calling module context.
-*/
-run(Module:Test, Context, OutContext) :-
-  !, context:new_module(Context, Module, Context1),
-  run(Test, Context1, OutContext).
 /**
 @pred run(+ _LeafTest_, + _Context_, ? _OutContext_)
 
