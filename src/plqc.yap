@@ -59,6 +59,20 @@ The result of the property is added to the given context in the _OutContext_.
 */
 
 /**
+@pred run(+ prop(_Label_), + _Context_, ? _OutContext_)
+
+If a property being tested is a labelled property, it needs to be unfolded
+(labelled property clause body) in the context module and recursively addressed.
+
+'Unfolding' requires compilation with 'source'.
+_Label_ is either the identifier (atom that identifies the property) or
+a tuple with the identifier and the arguments.
+*/
+run(prop(Label), Context, OutContext) :-
+  !, context:module(Context, Module),
+  clause(Module:prop(Label), Body),
+  run(Body, Context, OutContext).
+/**
 @pred run(+ _Module_:_Test_, + _Context_, ? _OutContext_)
 
 If properties or goals to be executed in the scope of the test are defined in

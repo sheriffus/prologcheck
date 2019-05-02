@@ -8,7 +8,17 @@
 %                                         L == L1), 50).
 
 successfull_goal :-
+  writeln(testprop_tgoal),
   X is 1+2, X == 3.
 
 failing_goal :-
+  writeln(testprop_fgoal),
+  X is 1+2, X == 4.
+
+prop(successfull_prop) :-
+  writeln(testprop_tprop),
+  X is 1+2, X == 3.
+
+prop(failing_prop) :-
+  writeln(testprop_fprop),
   X is 1+2, X == 4.

@@ -82,3 +82,35 @@
   ) ;
   nl,nl,writeln({run, module, tests, 'FAILED'}),nl,nl
 .
+
+:- (
+  writeln({run, labelled, tests}),
+  context:default(Context),
+  writeln({context, default, no_result}),
+  not(context:result(Context,_Res)),
+  writeln({load, module, testprops}),
+  consult(testprops),
+  % module true goal
+  writeln({run, labelled, tgoal}),
+  plqc:run(testprops:prop(successfull_prop), Context, OutContext1),
+  writeln({context, ok, result}),
+  context:result(OutContext1,Result1),
+  writeln({result1, Result1}),
+  result:raw(Result1, RawResult1),
+  RawResult1 == pass,
+  result:reason(Result1, Reason1),
+  Reason1 == true_goal,
+  % module fail goal
+  writeln({run, labelled, fgoal}),
+  plqc:run(testprops:prop(failing_prop), Context, OutContext2),
+  writeln({context, nok, result}),
+  context:result(OutContext2,Result2),
+  writeln({result2, Result2}),
+  result:raw(Result2, RawResult2),
+  RawResult2 == fail,
+  result:reason(Result2, Reason2),
+  Reason2 == false_goal,
+  nl,nl,writeln({run, labelled, tests, 'PASSED'}),nl,nl
+  ) ;
+  nl,nl,writeln({run, labelled, tests, 'FAILED'}),nl,nl
+.
