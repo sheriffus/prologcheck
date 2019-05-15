@@ -11,7 +11,7 @@
 **************************************************************************
 *
 * File:     plqc.yap
-* Last rev: 2019/04/04
+* Last rev: 2019/05/15
 * mods:
 * comments: PrologCheck module main file;
 *           File to be included/consulted in prolog projects for property
@@ -38,6 +38,14 @@
 
 */
 
+/**
+ * @file   plqc.yap
+ * @author Claudio Amaral <coa@dcc.fc.up.pt>
+ * @date   Mon May 15 15:15 2019
+ *
+ * @brief  PrologCheck module main file
+ *
+*/
 :- module(plqc,
          [
            run/3

@@ -11,7 +11,7 @@
 **************************************************************************
 *
 * File:     context_test.yap
-* Last rev: 2019/04/22
+* Last rev: 2019/05/15
 * mods:
 * comments: PrologCheck runtime state of executing properties
 *
