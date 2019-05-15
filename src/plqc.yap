@@ -45,6 +45,7 @@
 
 :- reconsult(context).
 :- reconsult(result).
+% :- reconsult(plqc_common). TODO
 
 %% a leaf in the property syntax tree - a predicate call
 
@@ -66,23 +67,24 @@ other modules, the executing property represented by _Test_ is recursively ran
 with the _Module_ as its calling module context.
 */
 run(Module:Test, Context, OutContext) :-
-  !, context:new_module(Context, Module, Context1),
-  run(Test, Context1, OutContext).
+  !,
+  context:new_module(Context, Module, Context1),
+  run(Test, Context1, OutContext)
+.
 /**
 @pred run(+ for_all(_Gen_, _Var_, _Test_), + _Context_, ? _OutContext_)
 
 Run a test with universal quantification of a parameter.
 
-Recursively run _Test_ with occurring unbound variable _Var_ by binding a value
+Recursively run _Test_ [potentially] with occurring unbound variable _Var_ by binding a value
 from the domain of the generator _Gen_ to _Var_.
 */
 run(for_all(Gen, Var, Test), Context, OutContext) :-
-  !, context:module(Context, Module),
-  % context:get_size(Context,Size),
-  % bind_forall(Gen, Context, Var, Size),
-  % context:bind(Context, Var, Context1),
-  % run(Test, Context1, OutContext).
-  run(Test, Context, OutContext).
+  !,
+  context:size(Context, Size),
+  context:bind_forall(Gen, Context, Var, Size, Context1),
+  run(Test, Context1, OutContext)
+.
 /**
 @pred run(+ prop(_Label_), + _Context_, ? _OutContext_)
 
@@ -94,9 +96,11 @@ _Label_ is either the identifier (atom that identifies the property) or
 a tuple with the identifier and the arguments.
 */
 run(prop(Label), Context, OutContext) :-
-  !, context:module(Context, Module),
+  !,
+  context:module(Context, Module),
   clause(Module:prop(Label), Body),
-  run(Body, Context, OutContext).
+  run(Body, Context, OutContext)
+.
 /**
 @pred run(+ _LeafTest_, + _Context_, ? _OutContext_)
 
@@ -104,6 +108,7 @@ For _leaf_ properties, the goal represented by _LeafTest_ is _called_ on the
 module specified by _Context_.
 */
 run(LeafTest, Context, OutContext) :-
+  writeln({run, 'DEBUG', leaf}),
   context:module(Context, M),
   (
     M:call(LeafTest), !,
@@ -115,5 +120,26 @@ run(LeafTest, Context, OutContext) :-
   context:add_result(Context, Result, OutContext)
 .
 
+% falsify_aux(Size, forall(Gen,X,Prop), [sample(X,Shrink)|Trace]) :- !,
+%     call(Gen, Size, sample(X,Shrink)),
+%     falsify_aux(Size, Prop, Trace).
+% falsify_aux(Size, Goals, []) :-
+%     \+ check_goal(Goals).
+
+% %% run a single test for a property
+% %%
+% run_test(forall(Gen, X, Prop), [sample(X,Shrink)|Trace], Result) :-  !,
+%     call(Gen, 10, sample(X, Shrink)),
+%     run_test(Prop, Trace, Result).
+% run_test(Goals,  [], ok) :-
+%     check_goal(Goals), !.
+% run_test(Goals, [], failed).
+
+%
+% bind_forall(M:Gen, _Ctx, Var, Size) :-
+%         call(M:Gen, Var, Size).
+% bind_forall(Gen, Ctx, Var, Size) :-
+%         ctx:module(Ctx, M),
+%         call(M:Gen, Var, Size).
 
 %% @}

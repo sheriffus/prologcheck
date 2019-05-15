@@ -32,7 +32,7 @@ test_run(Prop, TestName, ExpectedResult) :- (
   % build context and check there is no result
   context:default(Context),
   writeln({context, default, no_result}),
-  not(context:result(Context,_Res)),
+  (\+ context:result(Context,_Res)),
   writeln({run, TestName, goal}),
   % test the prop
   plqc:run(Prop, Context, OutContext1),
@@ -52,7 +52,6 @@ test_run(Prop, TestName, ExpectedResult) :- (
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 
 
-
 :- test_run((X is 1+2, X == 3), leaf1, {pass,true_goal}).
 :- test_run((X is 1+2, X == 4), leaf2, {fail,false_goal}).
 
@@ -62,5 +61,5 @@ test_run(Prop, TestName, ExpectedResult) :- (
 :- consult(testprops), test_run(testprops:prop(successfull_prop), labelled1, {pass,true_goal}).
 :- consult(testprops), test_run(testprops:prop(failing_prop), labelled2, {fail,false_goal}).
 
-:- consult(testprops), test_run(testprops:prop(succ_univ_quant), labelled1, {pass,true_goal}).
-:- consult(testprops), test_run(testprops:prop(fail_univ_quant), labelled2, {fail,false_goal}).
+:- consult(testprops), consult(testgens), test_run(testprops:prop(succ_univ_quant), for_all1, {pass,true_goal}).
+:- consult(testprops), consult(testgens), test_run(testprops:prop(fail_univ_quant), for_all2, {fail,false_goal}).

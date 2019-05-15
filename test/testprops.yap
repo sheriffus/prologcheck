@@ -24,9 +24,13 @@ prop(failing_prop) :-
   X is 1+2, X == 4.
 
 prop(succ_univ_quant) :-
-  writeln(testprop_tuq),
-  X is 1+2, X == 3.
+  for_all(testgens:int3, X,
+    (Y is 1+2, Y == X)
+  )
+.
 
 prop(fail_univ_quant) :-
-  writeln(testprop_fuq),
-  X is 1+2, X == 4.
+  for_all(testgens:intnot3, X,
+    (Y is 1+2, Y == X)
+  )
+.
