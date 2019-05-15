@@ -1,6 +1,7 @@
 #! /bin/bash
 
 # build the documentation
+#echo skip || \
 docker run  \
        -v `pwd`/src/:/code/  \
        -v `pwd`/docs/:/docs/  \
@@ -9,14 +10,41 @@ docker run  \
        doxygen-yap  /config/doxy_config_file.cfg
 
 # Run docker yap image with library main file
+#echo skip || \
 docker run  \
        -v `pwd`/src/:/src/  \
        -it yap_image_ub1804  \
        yap -L /src/plqc.yap
 
-# Run docker yap image with test file
+
+# Run docker yap image with context test file
+#echo skip || \
 docker run  \
        -v `pwd`/src/:/src/  \
        -v `pwd`/test/:/test/  \
        -it yap_image_ub1804  \
        yap -L /test/context_test.yap
+
+# Run docker yap image with result test file
+#echo skip || \
+docker run  \
+       -v `pwd`/src/:/src/  \
+       -v `pwd`/test/:/test/  \
+       -it yap_image_ub1804  \
+       yap -L /test/result_test.yap
+
+# Run docker yap image with main file test file
+# echo skip || \
+docker run  \
+       -v `pwd`/src/:/src/  \
+       -v `pwd`/test/:/test/  \
+       -it yap_image_ub1804  \
+       yap -L /test/plqc_test.yap
+
+# Run docker yap image with testcase run file
+#echo skip || \
+docker run  \
+       -v `pwd`/src/:/src/  \
+       -v `pwd`/test/:/test/  \
+       -it yap_image_ub1804  \
+       yap -L /test/plqc_run_test.yap
