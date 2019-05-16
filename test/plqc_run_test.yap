@@ -33,7 +33,7 @@ test_run(Prop, TestName, ExpectedResult) :- (
   (\+ context:result(Context,_Res)),
   writeln({run, TestName, goal}),
   % test the prop
-  plqc:run(Prop, Context, OutContext1),
+  plqc_run:run(Prop, Context, OutContext1),
   writeln({context, result}),
   context:result(OutContext1,Result1),
   writeln({result1, Result1}),
