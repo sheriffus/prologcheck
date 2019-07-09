@@ -16,7 +16,7 @@
 * comments: PrologCheck shared helper and auxiliary predicates module
 *
 *************************************************************************/
-:- use_module('../src/plqc_common.yap').
+:- use_module('../src/plqc_common.pl').
 
 :- begin_tests(plqc_common).
 
