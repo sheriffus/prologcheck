@@ -48,3 +48,11 @@ docker run  \
        -v `pwd`/test/:/test/  \
        -it yap_image_ub1804  \
        yap -L /test/plqc_run_test.yap
+
+# Run docker yap image with shared helpers test file
+#echo skip || \
+docker run  \
+       -v `pwd`/src/:/src/  \
+       -v `pwd`/test/:/test/  \
+       -it swipl  \
+       swipl -t "consult('/test/plqc_common.plt'), show_coverage(run_tests)."
