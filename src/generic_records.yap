@@ -11,7 +11,7 @@
 **************************************************************************
 *
 * File:     generic_records.yap
-* Last rev: 2019/04/24
+* Last rev: 2019/06/06
 * mods:
 * comments: PrologCheck generic record handling shared module
 *
@@ -51,7 +51,14 @@ name in the first element and the data in the second element.
  * @brief  PrologCheck generic record handling shared module.
  *
 */
-:- module(generic_records).
+:- module(generic_records,
+          [ get/4
+          , replace/5
+          , add/5
+          , pop/5
+          ]
+         )
+.
 
 
 %% TODO - tests and documentation
@@ -85,6 +92,18 @@ add(RecordName, Key, {RecordName, RecordAttrs}, Value, {RecordName, ReplacedAttr
   not(get_first(Key, RecordAttrs, _, _, _)),
   !,
   ReplacedAttrs = [ {Key, Value} | RecordAttrs].
+
+
+pop_first(Key, [{Key, Head}|Tail], Value, UnusedRecordAttrs) :-
+  !,
+  Value = Head,
+  UnusedRecordAttrs = Tail.
+pop_first(Key, [{OtherKey, Head}|Tail], Value, [{OtherKey, Head}|UnusedRecordAttrs]) :-
+  pop_first(Key, Tail, Value, UnusedRecordAttrs).
+
+pop(RecordName, Key, {RecordName, RecordAttrs}, Value, {RecordName, SubtractedAttrs}) :-
+  pop_first(Key, RecordAttrs, Value, SubtractedAttrs),
+  not(get_first(Key, SubtractedAttrs, _, _)).
 
 
 /** @} */
