@@ -71,10 +71,25 @@ result_reason() :=
 % TODO - documentation
 % TODO - use generic_records to create the result record
 
-create_result(pass, {reason, true_goal}, Result) :-
-  Result = {result, [{raw, pass}, {reason, true_goal}]}.
-create_result(fail, {reason, false_goal}, Result) :-
-  Result = {result, [{raw, fail}, {reason, false_goal}]}.
+create_result(test_pass, {reason, true_goal}, Result) :-
+  Result = {result, [{level, test_case}, {raw, pass}, {reason, true_goal}]}.
+create_result(test_fail, {reason, false_goal}, Result) :-
+  Result = {result, [{level, test_case}, {raw, fail}, {reason, false_goal}]}.
+create_result(test_precond_fail, {reason, cant_satisfy}, Result) :- !,
+  Result = {result, [{level, test_case}, {raw, error}, {reason, cant_satisfy}]}.
+
+create_result(suite_try_limit, {tests_passed, 0}, Result) :- !,
+  Result = {result, [{level, test_suite}, {raw, error}, {reason, cant_satisfy}, {tests_passed, 0}]}.
+create_result(suite_try_limit, {tests_passed, N}, Result) :-
+  Result = {result, [{level, test_suite}, {raw, pass_partial}, {reason, max_tries_reached}, {tests_passed, N}]}.
+create_result(suite_pass, {tests_passed, N}, Result) :-
+  Result = {result, [{level, test_suite}, {raw, pass}, {reason, suite_complete}, {tests_passed, N}]}.
+create_result(suite_fail, [{tests_passed, N}, {counterexample, C}], Result) :-
+  Result = {result, [{level, test_suite}, {raw, fail}, {reason, counterexample_found}, {tests_passed, N}, {counterexample, C}]}.
+create_result(suite_evidence_found, [{tests_passed, N}, {counterexample, C}], Result) :-
+  Result = {result, [{level, test_suite}, {raw, pass}, {reason, failing_evidence_found}, {tests_passed, N}, {counterexample, C}]}.
+create_result(suite_evidence_not_found, {tests_passed, N}, Result) :-
+  Result = {result, [{level, test_suite}, {raw, fail}, {reason, failing_evidence_not_found}, {tests_passed, N}]}.
 
 
 /** @section Generics (Generic record wrapper predicates) */
@@ -177,5 +192,33 @@ the given _Result_.
 This is a 'getter' of the reason attribute of a result object.
 */
 reason(Result, Reason) :- get(reason, Result, Reason).
+
+/** @section Tries (Number of attempts to test the property) */
+
+/** @pred tries_(+ _Result_, ? _Tries_)
+Predicate that succeeds when the given _Result_ is unifiable with a
+result record with a tries property and _Tries_ is unifiable with said
+tries property.
+
+Uses result generic 'get' predicate applied to tries.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+tries(+ _Result_, - _Tries_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _Tries_ parameter is bound to the tries property of
+the given _Result_.
+This is a 'getter' of the tries attribute of a result object.
+*/
+tries(Result, Tries) :- get(reason, Result, Tries).
+
+
+check(Result, ExpectedRaw, ExpectedReason) :-
+  writeln({check_result_result, result, Result, ExpectedRaw, ExpectedReason}),
+  raw(Result, Raw),
+  reason(Result, Reason),
+  writeln({check_result_result, result, Result, Raw, Reason}),
+  {Raw, Reason} == {ExpectedRaw, ExpectedReason}
+.
 
 /** @} */
