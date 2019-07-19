@@ -11,7 +11,7 @@
 **************************************************************************
 *
 * File:     context.yap
-* Last rev: 2019/05/15
+* Last rev: 2019/07/18
 * mods:
 * comments: PrologCheck runtime state of executing properties
 *
@@ -56,7 +56,7 @@ TODO, printers     :: [stats_printer()]                 % not used
 /**
  * @file   context.yap
  * @author Claudio Amaral <coa@dcc.fc.up.pt>
- * @date   Mon May 15 15:15 2019
+ * @date   Mon July 18 15:15 2019
  *
  * @brief  PrologCheck runtime state of executing properties.
  *
@@ -65,36 +65,118 @@ TODO, printers     :: [stats_printer()]                 % not used
 
 :- reconsult(generic_records).
 
-start_size(1).
-default_binder(bind).
-default_shrinker(shrink).
-default_generator(generator).
+/** @pred default_(? _Attribute_, ? _Value_)
+Predicate that succeeds when the given _Value_ parameter is unifiable with the
+defined default value of the attribute that the parameter _Attribute_ is
+unifiable to.
+It should be equivalent to a key-value dictionary, with only one value per
+attribute (the attribute's default value).
 
-/** @pred default_(? _Context_)
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+:- default (+_Attribute_, - _Value_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _Value_ parameter is bound to the default defined value
+for the configuration attribute _Attribute_.
+This is the accessor of default context configuration attributes.
+
+Defaults:
+- module -- _plqc_, the framework main module -- module form which the test
+goals shall be executed from
+- start_size -- _1_ -- default start size
+- size_step -- _1_ -- default size increment between tests
+- num_tests -- 100 -- default number of tests in a (successfull) test suite execution
+- tries_calc_predicate -- x5 -- predicate to be used, by default, to calculate the maximum number of attempts to test a property (with valid input/pre-conditions)
+- expected_result -- fail -- result that is expected of the test/property
+- binder -- TBD
+- shrinker -- TBD
+- generator -- TBD
+
+TODO: see if caller module is retrievable for module default value
+*/
+default(module, plqc).
+default(start_size,1).
+default(size_step,1).
+default(num_tests,100).
+default(tries_calc_predicate,context:times_five). % TODO - move to config module
+default(expected_result,fail).
+default(binder,bind).
+default(shrinker,shrink).
+default(generator,generator).
+
+
+:- dynamic configuration/2.
+
+/** @pred configuration_(? _Attribute_, ? _Value_)
+Predicate that succeeds when the given _Value_ parameter is unifiable with the
+defined value of the attribute that the parameter _Attribute_ is unifiable to.
+It should be equivalent to a key-value dictionary, with only one value per
+attribute (the attribute's currently defined value).
+
+This is a dynamic predicate to allow the redefinition of configuration
+attributes of PrologCheck and is initially defined int erms of the default
+values of the attributes given by default/2.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+:- configuration (+_Attribute_, - _Value_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _Value_ parameter is bound to the currently defined
+value for the configuration attribute _Attribute_.
+This is the accessor of currently defined context configuration attributes.
+*/
+configuration(module, Module) :-
+  default(module, Module).
+configuration(start_size,StartSize) :-
+   default(start_size,StartSize).
+configuration(size_step,SizeStep) :-
+   default(size_step,SizeStep).
+configuration(num_tests,NumTests) :-
+   default(num_tests,NumTests).
+configuration(tries_calc_predicate,TriesCalcPredicate) :-
+   default(tries_calc_predicate,TriesCalcPredicate).
+configuration(expected_result,ExpectedResult) :-
+   default(expected_result,ExpectedResult).
+configuration(binder,Binder) :-
+   default(binder,Binder).
+configuration(shrinker,Shrinker) :-
+   default(shrinker,Shrinker).
+configuration(generator,Generator) :-
+   default(generator,Generator).
+%% end of configuration/2 predicate
+
+/** @pred init_(? _Context_)
 Predicate that succeeds when the given _Context_ parameter is unifiable with a
-context record of the default values defined for the runtime property context.
+context record of the currently defined values for the runtime property context.
+
+The values in the context initialisation are taken from the configuration/2
+predicate of currently defined context attributes.
 
 Intended use:
 ~~~~~~~~~~~~~~~~~~~~~{.prolog}
 :- default (- _Context_)
 ~~~~~~~~~~~~~~~~~~~~~
-The free variable in the parameter is bound to the default context properties.
+The free variable in the parameter is bound to the currently defined context
+properties.
 This is the constructor of context objects.
 
-Defaults:
-- module -- _plqc_, the framework main module --, module form which the test
-goals shall be executed from
-
-TODO: see if caller module is retrievable for module default value
 */
-default({ctx,
-         [
-           {module, plqc}
+init({ctx,
+         [ {module, Module}
          , {size, StartSize}
+         , {size_step, SizeStep}
+         , {num_tests, NumTests}
+         , {tries_calc_predicate, TriesCalcPredicate}
+         , {expected_result, ExpectedResult}
          , {bindings, [{trace, L-L}, {binder, bind}, {shrinker, shrink_size}, {generator, generator}]}
          ]
         }) :-
-  start_size(StartSize)
+  configuration(module, Module),
+  configuration(start_size, StartSize),
+  configuration(size_step, SizeStep),
+  configuration(num_tests, NumTests),
+  configuration(tries_calc_predicate, TriesCalcPredicate),
+  configuration(expected_result, ExpectedResult)
 .
 %        , {mode, new}
 %        , {[bindings, []]}
@@ -132,6 +214,27 @@ default({ctx,
 %         % {{{ TODO when choosing a seed is possible
 %         % }}}
 %         State = State5.
+% %% {pass,  reason    :: pass_reason(),
+% %%         samples   :: [sample()],
+% %%         printers  :: [stats_printer()],
+% %%         performed :: pos_integer()}.
+% default_pass({pass, Reason, Bound, Samples, Printers, Performed}).
+% output_fun() :- quiet(opts:quietfun), verbose(opts:verbosefun),
+%              {to_file,IoDev}( opts:tofilefun(IoDev) )% TODO io:format(IoDev, S, F)
+%              {to_strem,Strem}( opts:tostreamfun(Stream) ).
+%              {on_output,Print}( Print ).
+% long_result( true ).
+% {numtests,N}, OptsA, Opts) :- new_numtests(OptsA, N, Opts).
+% {start_size,Size}, OptsA, Opts) :- new_start_size(OptsA, Size, Opts).
+% {max_size,Size}, OptsA, Opts) :- new_max_size(OptsA, Size, Opts).
+% {max_shrinks,N}, OptsA, Opts) :- new_max_shrinks(OptsA, N, Opts).
+% noshrink, OptsA, Opts) :- new_noshrink(OptsA, true, Opts).
+% {constraint_tries,N}, OptsA, Opts) :- new_constraint_tries(OptsA, N, Opts).
+% fails, OptsA, Opts) :- new_expect_fail(OptsA, true, Opts).
+% any_to_integer, OptsA, Opts) :-
+%         proper_types:integer(I),
+%         new_any_type(OptsA, {type,I}, Opts).
+% {spec_timeout,N}, OptsA, Opts) :- new_spec_timeout(OptsA, N, Opts).
 
 /** @section Generics (Generic record wrapper predicates) */
 
@@ -195,6 +298,9 @@ This is the generic extension predicate of the context record module.
 add(Key, ContextRecord, NewValue, ExtendedContextRecord) :-
   generic_records:add(ctx, Key, ContextRecord, NewValue, ExtendedContextRecord).
 
+pop(Key, ContextRecord, Value, SubtractedContextRecord) :-
+  generic_records:pop(ctx, Key, ContextRecord, Value, SubtractedContextRecord).
+
 /** @section Module (Module context attribute) */
 
 /** @pred module_(+ _Context_, ? _Module_)
@@ -233,9 +339,48 @@ This is a 'setter' of the module attribute of a context object.
 new_module(Context, NewModule, NewContext) :- replace(module, Context, NewModule, NewContext).
 
 
+/** @section ExpectedResult (Expected Result context attribute) */
+
+/** @pred expected_result_(+ _Context_, ? _ExpectedResult_)
+Predicate that succeeds when the given _Context_ is unifiable with a context
+record with a expected_result property and _ExpectedResult_ is unifiable with
+said expected_result property.
+
+Uses context generic 'get' predicate applied to expected_result.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+expected_result(+ _Context_, - _ExpectedResult_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _ExpectedResult_ parameter is bound to the
+expected_result property of the given _Context_.
+This is a 'getter' of the expected_result attribute of a context object.
+*/
+expected_result(Context, ExpectedResult) :- get(expected_result, Context, ExpectedResult).
+
+/** @pred new_expected_result_(+ _Context_, ? _NewExpectedResult_, ? _NewContext_)
+
+Predicate that succeeds when the given _Context_ is unifiable with a
+context record with a expected_result property and _NewContext_ is unifiable with
+_Context_ with the expected_result data replaced with the _NewExpectedResult_
+parameter term.
+
+Uses context generic 'replace' predicate applied to expected_result.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+expected_result(+ _Context_, + _NewExpectedResult_, - _NewContext_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable _NewContext_ is built/copied from _Context_ where the value
+of the expected_result property is replaced with the given _NewExpectedResult_.
+This is a 'setter' of the expected_result attribute of a context object.
+*/
+new_expected_result(Context, NewExpectedResult, NewContext) :- replace(expected_result, Context, NewExpectedResult, NewContext).
+
+
 /** @section Result (Result context attribute) */
 
-/** @pred result_(+ _Context_, ? _Result_)
+/** @pred test_result_(+ _Context_, ? _Result_)
 Predicate that succeeds when the given _Context_ is unifiable with a
 context record with a result property and _Result_ is unifiable with said
 result property.
@@ -250,44 +395,101 @@ The free variable in the _Result_ parameter is bound to the result property of
 the given _Context_.
 This is a 'getter' of the result attribute of a context object.
 */
-result(Context, Result) :- get(result, Context, Result).
+test_result(Context, Result) :- get(test_result, Context, Result).
 
-/** @pred new_result_(+ _Context_, ? _NewResult_, ? _NewContext_)
+% /** @pred new_test_result_(+ _Context_, ? _NewResult_, ? _NewContext_)
+% Predicate that succeeds when the given _Context_ is unifiable with a
+% context record with a result property and _NewContext_ is unifiable with
+% _Context_ with the result data replaced with the _NewResult_ parameter term.
+%
+% Uses context generic 'replace' predicate applied to result.
+%
+% Intended use:
+% ~~~~~~~~~~~~~~~~~~~~~{.prolog}
+% new_result(+ _Context_, + _NewResult_, - _NewContext_)
+% ~~~~~~~~~~~~~~~~~~~~~
+% The free variable _NewContext_ is built/copied from _Context_ where
+% the value of the result property is replaced with the given _NewResult_.
+% This is a 'setter' of the result attribute of a context object.
+% */
+% new_result(Context, NewResult, NewContext) :- replace(result, Context, NewResult, NewContext).
+
+/** @pred add_test_result_(+ _Context_, ? _NewResult_, ? _NewContext_)
 Predicate that succeeds when the given _Context_ is unifiable with a
-context record with a result property and _NewContext_ is unifiable with
-_Context_ with the result data replaced with the _NewResult_ parameter term.
+context record WITHOUT a test_result property and _NewContext_ is an extension
+of _Context_ with a the test_result attribute with data unified with the
+_NewResult_ parameter term.
 
-Uses context generic 'replace' predicate applied to result.
+Uses context generic 'add' predicate applied to test_result.
 
 Intended use:
 ~~~~~~~~~~~~~~~~~~~~~{.prolog}
-new_result(+ _Context_, + _NewResult_, - _NewContext_)
+add_test_result(+ _Context_, + _NewResult_, - _NewContext_)
 ~~~~~~~~~~~~~~~~~~~~~
-The free variable _NewContext_ is built/copied from _Context_ where
-the value of the result property is replaced with the given _NewResult_.
-This is a 'setter' of the result attribute of a context object.
-*/
-new_result(Context, NewResult, NewContext) :- replace(result, Context, NewResult, NewContext).
-
-/** @pred add_result_(+ _Context_, ? _NewResult_, ? _NewContext_)
-Predicate that succeeds when the given _Context_ is unifiable with a
-context record WITHOUT a result property and _NewContext_ is an extension of
-_Context_ with a the result attribute with data unified with the _NewResult_
-parameter term.
-
-Uses context generic 'add' predicate applied to result.
-
-Intended use:
-~~~~~~~~~~~~~~~~~~~~~{.prolog}
-add_result(+ _Context_, + _NewResult_, - _NewContext_)
-~~~~~~~~~~~~~~~~~~~~~
-The free variable _NewContext_ is built/copied from _Context_ where
-the value of the result property is added at the head with the given _NewResult_
+The free variable _NewContext_ is built/copied from _Context_ where the value
+of the test_result property is added at the head with the given _NewResult_
 as the attribute data.
-This is an optional extension of the result attribute of a context object
-without result.
+This is an optional extension of the test_result attribute of a context object
+without test_result.
 */
-add_result(Context, Result, NewContext) :- add(result, Context, Result, NewContext).
+add_test_result(Context, Result, NewContext) :- add(test_result, Context, Result, NewContext).
+
+/** @pred pop_test_result_(+ _Context_, ? _Result_, ? _NewContext_)
+Predicate that succeeds when the given _Context_ is unifiable with a
+context record with a test_result property, with data unified with the
+_Result_ parameter variable, and _NewContext_ is a subset
+of _Context_ WITHOUT the test_result attribute.
+
+Uses context generic 'pop' predicate applied to test_result.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+pop_test_result(+ _Context_, - _Result_, - _NewContext_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable _NewContext_ is built/copied from _Context_ where the value
+of the test_result property is removed and the attribute data in said
+test_result is unified with the given variable _Result_.
+This is an attribute removal method of the test_result attribute of a context
+object with test_result.
+*/
+pop_test_result(Context, Result, NewContext) :- pop(test_result, Context, Result, NewContext).
+
+/** @pred suite_result_(+ _Context_, ? _Result_)
+Predicate that succeeds when the given _Context_ is unifiable with a
+context record with a suite_result property and _Result_ is unifiable with said
+suite_result property.
+
+Uses context generic 'get' predicate applied to suite_result.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+suite_result(+ _Context_, - _Result_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _Result_ parameter is bound to the suite_result property of
+the given _Context_.
+This is a 'getter' of the suite_result attribute of a context object.
+*/
+suite_result(Context, Result) :- get(suite_result, Context, Result).
+
+/** @pred add_suite_result_(+ _Context_, ? _NewResult_, ? _NewContext_)
+Predicate that succeeds when the given _Context_ is unifiable with a
+context record WITHOUT a suite_result property and _NewContext_ is an extension
+of _Context_ with a the suite_result attribute with data unified with the
+_NewResult_ parameter term.
+
+Uses context generic 'add' predicate applied to suite_result.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+add_suite_result(+ _Context_, + _NewResult_, - _NewContext_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable _NewContext_ is built/copied from _Context_ where the value
+of the suite_result property is added at the head with the given _NewResult_
+as the attribute data.
+This is an optional extension of the suite_result attribute of a context object
+without suite_result.
+*/
+add_suite_result(Context, Result, NewContext) :- add(suite_result, Context, Result, NewContext).
 
 
 /** @section Size (Generated Test Data Size context attribute) */
@@ -370,6 +572,170 @@ increment_size(Context, NewContext, Step) :-
   new_size(Context, NewSize, NewContext).
 
 
+/** @pred tries_calc_predicate_(+ _Context_, ? _TriesCalcPredicate_)
+Predicate that succeeds when the given _Context_ is unifiable with a context
+record with a tries_calc_predicate property and _TriesCalcPredicate_ is
+unifiable with said tries_calc_predicate property.
+
+Uses context generic 'get' predicate applied to tries_calc_predicate.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+tries_calc_predicate(+ _Context_, - _TriesCalcPredicate_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _TriesCalcPredicate_ parameter is bound to the
+tries_calc_predicate property of the given _Context_.
+This is a 'getter' of the tries_calc_predicate attribute of a context object.
+*/
+tries_calc_predicate(Context, TriesCalcPredicate) :-
+  get(tries_calc_predicate, Context, TriesCalcPredicate).
+
+/** @pred num_tests_(+ _Context_, ? _NumTests_)
+Predicate that succeeds when the given _Context_ is unifiable with a context
+record with a num_tests property and _NumTests_ is
+unifiable with said num_tests property.
+
+Uses context generic 'get' predicate applied to num_tests.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+num_tests(+ _Context_, - _NumTests_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _NumTests_ parameter is bound to the
+num_tests property of the given _Context_.
+This is a 'getter' of the num_tests attribute of a context object.
+*/
+num_tests(Context, NumTests) :-
+  get(num_tests, Context, NumTests).
+
+
+/** @pred parse(+ _UserOptions_, ? _Context_)
+
+Predicate that succeeds when the given _UserOptions_ is unifiable with a list
+of context record attributes and _Context_ is unifiable with a context record
+built from the default and where each element of _UserOptions_ replaced the
+defaults.
+
+Defaults are kept if there is no option to replace it and if multiple options
+refer to the same context attribute the last one will be used.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+parse(+ _UserOptions_, ? _Context_)
+~~~~~~~~~~~~~~~~~~~~~
+*/
+parse(UserOptions, Context) :-
+  init(ContextInit),
+  parse(UserOptions, ContextInit, Context)
+.
+
+/** @pred parse(+ _UserOptions_, + _ContextAcc_, ? _Context_)
+
+Predicate that succeeds when the given _UserOptions_ is unifiable with a list
+of context record attributes and _Context_ is unifiable with a context record
+built from the context accumulator _ContextAcc_ and where each element of
+_UserOptions_ replaced the defaults.
+
+Defaults are kept if there is no option to replace it and if multiple options
+refer to the same context attribute the last one will be used.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+parse(+ _UserOptions_, + _ContextAcc_, - _Context_)
+~~~~~~~~~~~~~~~~~~~~~
+
+When the _UserOptions_ is nil, the result context is the accumulator context.
+
+When there is an user option, that option data replaces the corresponding
+attribute in the context accumulator resulting in an intermediate context
+accumulator. The intermediate accumulator is recursively passed to the parse
+of the rest of the user options (list tail).
+*/
+parse([], Context, Context).
+parse([ {AttrName, AttrData} | UserOptions ], ContextAcc, Context) :-
+  replace(AttrName, ContextAcc, AttrData, ContextAcc2),
+  parse(UserOptions, ContextAcc2, Context)
+.
+
+/** @section SuiteData (Number of tests performed context attribute) */
+
+/** @pred tests_passed_(+ _Context_, ? _TestsPassed_)
+Predicate that succeeds when the given _Context_ is unifiable with a context
+record with a tests_passed property and _TestsPassed_ is unifiable with said
+tests_passed property.
+
+Uses context generic 'get' predicate applied to tests_passed.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+tests_passed(+ _Context_, - _TestsPassed_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _TestsPassed_ parameter is bound to the tests_passed
+property of the given _Context_.
+This is a 'getter' of the tests_passed attribute of a context object.
+*/
+tests_passed(Context, TestsPassed) :- get(tests_passed, Context, TestsPassed).
+
+/** @pred add_tests_passed_(+ _Context_, ? _NewTestsPassed_, ? _NewContext_)
+Predicate that succeeds when the given _Context_ is unifiable with a
+context record WITHOUT a tests_passed property and _NewContext_ is an extension
+of _Context_ with a the tests_passed attribute with data unified with the
+_NewTestsPassed_ parameter term.
+
+Uses context generic 'add' predicate applied to tests_passed.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+add_tests_passed(+ _Context_, + _NewTestsPassed_, - _NewContext_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable _NewContext_ is built/copied from _Context_ where
+the value of the tests_passed property is added at the head with the given
+_NewTestsPassed_ as the attribute data.
+This is an optional extension of the tests_passed attribute of a context object
+without tests_passed.
+*/
+add_tests_passed(Context, TestsPassed, NewContext) :- add(tests_passed, Context, TestsPassed, NewContext).
+/** @section TestsPassed (Number of tests performed context attribute) */
+
+/** @pred tests_tried_(+ _Context_, ? _TestsTried_)
+Predicate that succeeds when the given _Context_ is unifiable with a context
+record with a tests_tried property and _TestsTried_ is unifiable with said
+tests_tried property.
+
+Uses context generic 'get' predicate applied to tests_tried.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+tests_tried(+ _Context_, - _TestsTried_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _TestsTried_ parameter is bound to the tests_tried
+property of the given _Context_.
+This is a 'getter' of the tests_tried attribute of a context object.
+*/
+tests_tried(Context, TestsTried) :- get(tests_tried, Context, TestsTried).
+
+/** @pred add_tests_tried_(+ _Context_, ? _NewTestsTried_, ? _NewContext_)
+Predicate that succeeds when the given _Context_ is unifiable with a
+context record WITHOUT a tests_tried property and _NewContext_ is an extension
+of _Context_ with a the tests_tried attribute with data unified with the
+_NewTestsTried_ parameter term.
+
+Uses context generic 'add' predicate applied to tests_tried.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+add_tests_tried(+ _Context_, + _NewTeststried_, - _NewContext_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable _NewContext_ is built/copied from _Context_ where
+the value of the tests_tried property is added at the head with the given
+_NewTestsTried_ as the attribute data.
+This is an optional extension of the tests_tried attribute of a context object
+without tests_tried.
+*/
+add_tests_tried(Context, TestsTried, NewContext) :- add(tests_tried, Context, TestsTried, NewContext).
+
+
+
 /** @section Bindings (Generated Test Data bindings context attribute) */
 
 /** @pred bindings_(+ _Context_, ? _Bindings_)
@@ -389,6 +755,15 @@ This is a 'getter' of the bindings attribute of a context object.
 */
 bindings(Context, Bindings) :- get(bindings, Context, Bindings).
 
+reset_bindings_trace(Context, Trace, OutContext) :-
+  get(bindings, Context, Bindings),
+  % deceive context get method to retrieve trace from the bindings data
+  get(trace, {ctx, Bindings}, Trace-[]),
+  % deceive context replace method to replace trace from the bindings data
+  replace(trace, {ctx, Bindings}, L-L, {ctx, ResetBindings}),
+  replace(bindings, Context, ResetBindings, OutContext)
+.
+
 
 % TODO rework bindings and move methods to appropriate modules
 new_bindings(Context, NewBindings, NewContext) :- replace(bindings, Context, NewBindings, NewContext).
@@ -403,7 +778,12 @@ bind_forall(Module:Gen, Context, X, Size, OutContext) :-
   new_bindings(Context, NewBindings, OutContext)
 .
 bind_forall(Gen, Context, Var, Size, OutContext) :-
+  writeln({'DEBUG', bind_for_all, no_mod}),
   context:module(Context, Module),
   bind_forall(Module:Gen, Context, Var, Size, OutContext)
 .
+
+
+times_five(N,M) :- M is N * 5.
+
 /** @} */

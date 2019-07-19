@@ -23,7 +23,7 @@ context_test(Attribute, Default, NewValue) :- (
   writeln({Attribute, tests}),
   writeln({default, Attribute, Default}),
   writeln({newvalue, Attribute, NewValue}),
-  context:default(Context),
+  context:init(Context),
   call(context:Attribute, Context, AttrValue1),
   % context:module(Context, Module1),
   writeln({Attribute, 1, AttrValue1}),
@@ -53,7 +53,7 @@ check_size(Context, ExpectedSize) :-
 
 :- (
   writeln({size, increment, tests}),
-  context:default(Context1),
+  context:init(Context1),
   check_size(Context1, 1),
   context:increment_size(Context1, Context2),
   check_size(Context2, 2),
