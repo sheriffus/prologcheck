@@ -34,3 +34,16 @@ prop(fail_univ_quant) :-
     (Y is 1+2, Y == X)
   )
 .
+
+prop(succ_univ_quant_sized) :-
+  for_all(testgens:uint, X,
+    (X >= 0)
+  )
+.
+prop(fail_univ_quant_sized) :-
+  for_all(testgens:int, X,
+    for_all(testgens:int, Y,
+      for_all(testgens:int, Z,
+        (X =\= Y ; X == Z)
+  )))
+.

@@ -28,14 +28,14 @@ expectation(reason,false_goal,{_,false_goal}).
 test_run(Prop, TestName, ExpectedResult) :- (
   writeln({run, TestName, tests}),
   % build context and check there is no result
-  context:default(Context),
-  writeln({context, default, no_result}),
-  (\+ context:result(Context,_Res)),
+  context:init(Context),
+  writeln({context, init,  no_result}),
+  (\+ context:test_result(Context,_Res)),
   writeln({run, TestName, goal}),
   % test the prop
   plqc_run:run(Prop, Context, OutContext1),
   writeln({context, result}),
-  context:result(OutContext1,Result1),
+  context:test_result(OutContext1,Result1),
   writeln({result1, Result1}),
   result:raw(Result1, RawResult1),
   expectation(raw,RawResult1,ExpectedResult),

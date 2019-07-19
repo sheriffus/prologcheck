@@ -38,17 +38,19 @@ used under the hood of PrologCheck library.
 */
 :- module(plqc_run,
          [
-           run/3
+           run_prop/3
          ]).
 
 :- reconsult(context).
 :- reconsult(result).
 % :- reconsult(plqc_common). TODO
 
-%% a leaf in the property syntax tree - a predicate call
+run_prop(Property, Context, OutContext) :-
+  duplicate_term(Property, Test),
+  run(Test, Context, OutContext)
+.
 
-/**
-@pred run(+ _Test_, + _Context_, ? _OutContext_)
+/** @pred run(+ _Test_, + _Context_, ? _OutContext_)
 
 Predicate that runs a property, _Test_, according to a property execution
 context, _Context_.
@@ -57,8 +59,7 @@ The result of the property is added to the given context in the _OutContext_.
 
 */
 
-/**
-@pred run(+ _Module_:_Test_, + _Context_, ? _OutContext_)
+/** @pred run(+ _Module_:_Test_, + _Context_, ? _OutContext_)
 
 If properties or goals to be executed in the scope of the test are defined in
 other modules, the executing property represented by _Test_ is recursively ran
@@ -69,8 +70,7 @@ run(Module:Test, Context, OutContext) :-
   context:new_module(Context, Module, Context1),
   run(Test, Context1, OutContext)
 .
-/**
-@pred run(+ for_all(_Gen_, _Var_, _Test_), + _Context_, ? _OutContext_)
+/** @pred run(+ for_all(_Gen_, _Var_, _Test_), + _Context_, ? _OutContext_)
 
 Run a test with universal quantification of a parameter.
 
@@ -83,8 +83,7 @@ run(for_all(Gen, Var, Test), Context, OutContext) :-
   context:bind_forall(Gen, Context, Var, Size, Context1),
   run(Test, Context1, OutContext)
 .
-/**
-@pred run(+ prop(_Label_), + _Context_, ? _OutContext_)
+/** @pred run(+ prop(_Label_), + _Context_, ? _OutContext_)
 
 If a property being tested is a labelled property, it needs to be unfolded
 (labelled property clause body) in the context module and recursively addressed.
@@ -99,23 +98,22 @@ run(prop(Label), Context, OutContext) :-
   clause(Module:prop(Label), Body),
   run(Body, Context, OutContext)
 .
-/**
-@pred run(+ _LeafTest_, + _Context_, ? _OutContext_)
+/** @pred run(+ _LeafTest_, + _Context_, ? _OutContext_)
 
 For _leaf_ properties, the goal represented by _LeafTest_ is _called_ on the
 module specified by _Context_.
 */
 run(LeafTest, Context, OutContext) :-
-  writeln({run, 'DEBUG', leaf}),
+  % writeln({run, 'DEBUG', leaf}),
   context:module(Context, M),
   (
     M:call(LeafTest), !,
     %% (call(M:Test), !,
-    result:create_result(pass, {reason, true_goal}, Result)
+    result:create_result(test_pass, {reason, true_goal}, Result)
   ;
-    result:create_result(fail, {reason, false_goal}, Result)
+    result:create_result(test_fail, {reason, false_goal}, Result)
   ),
-  context:add_result(Context, Result, OutContext)
+  context:add_test_result(Context, Result, OutContext)
 .
 
 %% @}
