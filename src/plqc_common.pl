@@ -39,9 +39,18 @@ such as printing routines.
           [ member/2
           , verbosity_check/2
           , plqc_write/2
+          , plqc_write/1 %% same as /2 with configured run verbosity
+          , default_verbosity_level/1
+          , configured_verbosity_level/1
           ]).
 
 %% TODO - documentation
+
+default_verbosity_level(info).
+
+:- dynamic configured_verbosity_level/1.
+
+configured_verbosity_level(L) :- default_verbosity_level(L).
 
 member(X, [Y | XS]) :- X \== Y, !, member(X,XS).
 member(X, [X | _XS]).
@@ -76,6 +85,11 @@ plqc_write(_VerbosityLevel, []) :-  !.
 plqc_write(VerbosityLevel, [ {Verbosity, Term} | Terms ]) :-
   plqc_write_term(VerbosityLevel, Verbosity, Term),
   plqc_write(VerbosityLevel, Terms)
+.
+
+plqc_write(Terms) :-
+  configured_verbosity_level(VerbosityLevel),
+  plqc_write(VerbosityLevel,Terms)
 .
 
 /** @} */
