@@ -87,7 +87,7 @@ goals shall be executed from
 - size_step -- _1_ -- default size increment between tests
 - num_tests -- 100 -- default number of tests in a (successfull) test suite execution
 - tries_calc_predicate -- x5 -- predicate to be used, by default, to calculate the maximum number of attempts to test a property (with valid input/pre-conditions)
-- expected_result -- fail -- result that is expected of the test/property
+- expected_result -- pass -- result that is expected of the test/property
 - binder -- TBD
 - shrinker -- TBD
 - generator -- TBD
@@ -99,7 +99,7 @@ default(start_size,1).
 default(size_step,1).
 default(num_tests,100).
 default(tries_calc_predicate,context:times_five). % TODO - move to config module
-default(expected_result,fail).
+default(expected_result,pass).
 default(binder,bind).
 default(shrinker,shrink).
 default(generator,generator).
