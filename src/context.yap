@@ -61,9 +61,31 @@ TODO, printers     :: [stats_printer()]                 % not used
  * @brief  PrologCheck runtime state of executing properties.
  *
 */
-:- module(context).
+:- module(context, [
+                     default/2
+                   , configuration/2
+                   , init/1
+                   % generic methods
+                   , get/3, replace/4, add/4, pop/4
+                   , module/2, new_module/3
+                   , expected_result/2, new_expected_result/3
+                   , test_result/2, add_test_result/3, pop_test_result/3
+                   , suite_result/2, add_suite_result/3
+                   , size/2, new_size/3, increment_size/2, increment_size/3
+                   , size_step/2
+                   , tries_calc_predicate/2
+                   , num_tests/2
+                   , parse/2, parse/3
+                   , tests_passed/2, add_tests_passed/3
+                   , tests_tried/2, add_tests_tried/3
+                   , bindings/2, reset_bindings_trace/3, new_bindings/3
+                   , times_five/2
+                   , bind_forall/5
 
-:- reconsult(generic_records).
+]).
+
+:- use_module('../src/generic_records.pl').
+%:- reconsult(generic_records).
 
 /** @pred default_(? _Attribute_, ? _Value_)
 Predicate that succeeds when the given _Value_ parameter is unifiable with the
@@ -546,8 +568,10 @@ the value of the size property is replaced with (_Size_ + 1) where _Size_ is
 the current size attribute data of _Context_.
 This is a method for the manipulation of the size attribute of a context object.
 */
-increment_size(Context, NewContext) :- increment_size(Context, NewContext, 1).
-
+increment_size(Context, NewContext) :-
+  get(size_step, Context, Step),
+  increment_size(Context, NewContext, Step)
+  .
 /** @pred increment_size(+ _Context_, ? _NewContext_, + _Step_)
 
 Predicate that succeeds when the given _Context_ is unifiable with a
@@ -570,6 +594,23 @@ increment_size(Context, NewContext, Step) :-
   size(Context, Size),
   NewSize is Size + Step,
   new_size(Context, NewSize, NewContext).
+
+/** @pred size_step_(+ _Context_, ? _SizeStep_)
+Predicate that succeeds when the given _Context_ is unifiable with a
+context record with a size_step property and _SizeStep_ is unifiable with said
+size_step property.
+
+Uses context generic 'get' predicate applied to size_step.
+
+Intended use:
+~~~~~~~~~~~~~~~~~~~~~{.prolog}
+size_step(+ _Context_, - _SizeStep_)
+~~~~~~~~~~~~~~~~~~~~~
+The free variable in the _SizeStep_ parameter is bound to the size_step property of
+the given _Context_.
+This is a 'getter' of the size_step attribute of a context object.
+*/
+size_step(Context, SizeStep) :- get(size_step, Context, SizeStep).
 
 
 /** @pred tries_calc_predicate_(+ _Context_, ? _TriesCalcPredicate_)
@@ -769,7 +810,7 @@ reset_bindings_trace(Context, Trace, OutContext) :-
 new_bindings(Context, NewBindings, NewContext) :- replace(bindings, Context, NewBindings, NewContext).
 
 bind_forall(Module:Gen, Context, X, Size, OutContext) :-
-  writeln({'DEBUG', bind_for_all}),
+  writeln({'DEBUG', bind_for_all0, Module:Gen, X, TestDatum, Size}),
   !, call(Module:Gen, X, TestDatum, Size),
   bindings(Context, Bindings),
   Bindings = [{trace, Binds-Rest} | Tail],
