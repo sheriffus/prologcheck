@@ -17,13 +17,13 @@ docker run  \
        yap -L /src/plqc.yap
 
 
-# Run docker yap image with context test file
+# Run docker swipl image with context plunit test file
 #echo skip || \
 docker run  \
        -v `pwd`/src/:/src/  \
        -v `pwd`/test/:/test/  \
-       -it yap_image_ub1804  \
-       yap -L /test/context_test.yap
+       -it swipl  \
+       swipl -t "consult('/test/context.plt'), show_coverage(run_tests)."
 
 # Run docker yap image with result test file
 #echo skip || \
@@ -49,7 +49,7 @@ docker run  \
        -it yap_image_ub1804  \
        yap -L /test/plqc_run_test.yap
 
-# Run docker yap image with shared helpers test file
+# Run docker swipl image with shared helpers plunit test file
 #echo skip || \
 docker run  \
        -v `pwd`/src/:/src/  \
