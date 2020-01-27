@@ -56,3 +56,10 @@ docker run  \
        -v `pwd`/test/:/test/  \
        -it swipl  \
        swipl -t "consult('/test/plqc_common.plt'), show_coverage(run_tests)."
+
+## Run docker swipl image with generic records plunit test file
+docker run  \
+       -v `pwd`/src/:/src/  \
+       -v `pwd`/test/:/test/  \
+       -it swipl  \
+       swipl -t "consult('/test/generic_records.plt'), show_coverage(run_tests)."
