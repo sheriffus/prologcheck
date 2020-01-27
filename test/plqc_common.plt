@@ -118,9 +118,10 @@ test(verbosity_check2_level_checks_prior_very_verbose_verbose) :-
 test(verbosity_check2_level_checks_prior_debug_very_verbose) :-
   verbosity_check(debug, very_verbose).
 %% --- nonexisting run and call level ---
-test(verbosity_check2_inexisting_call_error, [error(type_error({run_level:verbosity,call_level:verbosity},{quiet,not_a_verbosity}),_Context)]) :-
+%test(verbosity_check2_inexisting_call_error, [error(type_error({run_level:verbosity,call_level:verbosity},{quiet,not_a_verbosity}),_Context)]) :-
+test(verbosity_check2_inexisting_call_error, [error(type_error(verbosity_pair,{quiet,not_a_verbosity}),_Context)]) :-
   verbosity_check(quiet, not_a_verbosity).
-test(verbosity_check2_inexisting_run_error, [error(type_error({run_level:verbosity,call_level:verbosity},{not_a_verbosity,quiet}),_Context)]) :-
+test(verbosity_check2_inexisting_run_error, [error(type_error(verbosity_pair,{not_a_verbosity,quiet}),_Context)]) :-
   verbosity_check(not_a_verbosity, quiet).
 
 :- end_tests(plqc_common_verbosity_check2).
@@ -131,9 +132,10 @@ test(verbosity_check2_inexisting_run_error, [error(type_error({run_level:verbosi
 :- begin_tests(plqc_common_plqc_write2).
 
 %% --- nonexisting run and call level ---
-test(plqc_write2_not_a_level_run, [error(type_error({run_level:verbosity,call_level:verbosity},{not_a_verbosity, info}),_Context)]) :-
+%test(plqc_write2_not_a_level_run, [error(type_error({run_level:verbosity,call_level:verbosity},{not_a_verbosity, info}),_Context)]) :-
+test(plqc_write2_not_a_level_run, [error(type_error(verbosity_pair,{not_a_verbosity, info}),_Context)]) :-
   plqc_write(not_a_verbosity, [{info, info_term}]).
-test(plqc_write2_not_a_level_call, [error(type_error({run_level:verbosity,call_level:verbosity},{debug, not_a_verbosity}),_Context)]) :-
+test(plqc_write2_not_a_level_call, [error(type_error(verbosity_pair,{debug, not_a_verbosity}),_Context)]) :-
   plqc_write(debug, [{not_a_verbosity, not_to_print_term}]).
 %% --- each run level with all call levels ---
 %% --- debug run and each call level ---
@@ -291,5 +293,121 @@ test(plqc_write2_from_quiet, true(ResultOutput =@= "")) :-
   with_output_to(string(ResultOutput),
       plqc_write(quiet, [{info, info_term}])
   ).
+%% --- info run and info call level modified/indented term ---
+test(plqc_write2_modified_showing, true(ResultOutput =@= "  info_term\n")) :-
+  with_output_to(string(ResultOutput),
+      plqc_write(info, [{info, [indent], info_term}])
+  ).
+%% --- quiet run and info call level modified/indented term ---
+test(plqc_write2_modified_not_showing, true(ResultOutput =@= "")) :-
+  with_output_to(string(ResultOutput),
+      plqc_write(quiet, [{info, [indent], info_term}])
+  ).
+%% --- info run and info call level modified/indented twice term ---
+test(plqc_write2_modified_showing, true(ResultOutput =@= "    info_term\n")) :-
+  with_output_to(string(ResultOutput),
+      plqc_write(info, [{info, [indent, indent], info_term}])
+  ).
+%% --- quiet run and info call level modified/indented twice term ---
+test(plqc_write2_modified_not_showing, true(ResultOutput =@= "")) :-
+  with_output_to(string(ResultOutput),
+      plqc_write(quiet, [{info, [indent, indent], info_term}])
+  ).
 
 :- end_tests(plqc_common_plqc_write2).
+
+%% ----------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------
+
+:- begin_tests(plqc_common_default_and_configured_verbosity_level).
+
+test(default_verbosity_level_is_info, true(DefaultVerbosity =@= info)) :-
+  default_verbosity_level(DefaultVerbosity).
+test(configured_verbosity_level_default_is_the_default, true(ConfiguredVerbosity =@= DefaultVerbosity)) :-
+  configured_verbosity_level(ConfiguredVerbosity),
+  default_verbosity_level(DefaultVerbosity).
+test(configured_verbosity_level_is_dynamic, true(ConfiguredVerbosity =@= very_verbose)) :-
+  update_verbosity_level(very_verbose),
+  configured_verbosity_level(ConfiguredVerbosity),
+  default_verbosity_level(DefaultVerbosity),
+  update_verbosity_level(DefaultVerbosity).
+
+%% --- updating to nonexisting level ---
+test(update_verbosity_level_not_a_level_error, [error(type_error(verbosity,not_a_verbosity))]) :-
+  update_verbosity_level(not_a_verbosity).
+test(update_verbosity_level_not_a_level_config_unchanged, true(ConfiguredVerbosity2 =@= ConfiguredVerbosity1)) :-
+  configured_verbosity_level(ConfiguredVerbosity1),
+  catch(
+    update_verbosity_level(not_a_verbosity),
+    error(type_error(verbosity, not_a_verbosity),_),
+    true
+  ),
+  configured_verbosity_level(ConfiguredVerbosity2).
+
+:- end_tests(plqc_common_default_and_configured_verbosity_level).
+
+%% ----------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------
+
+:- begin_tests(plqc_common_plqc_write1).
+
+test(plqc_write1_from_default, true(ResultOutput =@= "quiet_term\ninfo_term\n")) :-
+  with_output_to(string(ResultOutput),
+      plqc_write(
+        [{quiet, quiet_term}, {info, info_term}, {verbose, verbose_term}, {very_verbose, very_verbose_term}, {debug, debug_term}])
+  ).
+test(plqc_write1_from_very_verbose, true(ResultOutput =@= "quiet_term\ninfo_term\nverbose_term\nvery_verbose_term\n")) :-
+  update_verbosity_level(very_verbose),
+  with_output_to(string(ResultOutput),
+      plqc_write(
+        [{quiet, quiet_term}, {info, info_term}, {verbose, verbose_term}, {very_verbose, very_verbose_term}, {debug, debug_term}])
+  ),
+  default_verbosity_level(DefaultVerbosity),
+  update_verbosity_level(DefaultVerbosity).
+%test(plqc_write1_multi_config_changes, true(ResultOutput =@= "quiet_term\ninfo_term\nverbose_term\nvery_verbose_term\ndebug_term\n")) :-
+test(plqc_write1_multi_config_changes, true({ResultOutput1, ResultOutput2, ResultOutput3} =@=
+                                      {"quiet_term\ninfo_term\nverbose_term\n",
+                                      "quiet_term\ninfo_term\nverbose_term\nvery_verbose_term\ndebug_term\n",
+                                      "quiet_term\n"
+                                      })) :-
+  update_verbosity_level(verbose),
+  with_output_to(string(ResultOutput1),
+      plqc_write([{quiet, quiet_term}, {info, info_term}, {verbose, verbose_term}, {very_verbose, very_verbose_term}, {debug, debug_term}])
+  ),
+  update_verbosity_level(debug),
+  with_output_to(string(ResultOutput2),
+      plqc_write([{quiet, quiet_term}, {info, info_term}, {verbose, verbose_term}, {very_verbose, very_verbose_term}, {debug, debug_term}])
+  ),
+  update_verbosity_level(quiet),
+  with_output_to(string(ResultOutput3),
+      plqc_write([{quiet, quiet_term}, {info, info_term}, {verbose, verbose_term}, {very_verbose, very_verbose_term}, {debug, debug_term}])
+  ),
+  default_verbosity_level(DefaultVerbosity),
+  update_verbosity_level(DefaultVerbosity).
+
+:- end_tests(plqc_common_plqc_write1).
+
+%% ----------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------
+
+:- begin_tests(plqc_common_check_variable_W).
+
+test(check_variable_W_var_no_detail, true(ResultOutput =@= "")) :-
+  with_output_to(string(ResultOutput),
+      check_variable_W( _A , _VarDetail )
+  ).
+test(check_variable_W_ground_no_detail, true(ResultOutput =@=
+                                       "'WARNING: instantiated term found where the use of a variable is intended. '\n{term,a}\n")) :-
+  with_output_to(string(ResultOutput),
+      check_variable_W( a , _VarDetail )
+  ).
+test(check_variable_W_part_ground_with_detail, true(ResultOutput =@= ExpectedString)) :-
+%                                       "'WARNING: instantiated term found where the use of a variable is intended. '\n{term,a(_X)}\n{details,some_detail}\n")) :-
+  with_output_to(string(ResultOutput),
+      check_variable_W( a(X) , some_detail )
+  ),
+  with_output_to( string(VarAsString),  write( X ) ),
+  string_concat("'WARNING: instantiated term found where the use of a variable is intended. '\n{term,a(", VarAsString, TmpString),
+  string_concat( TmpString, ")}\n{details,some_detail}\n", ExpectedString).
+
+:- end_tests(plqc_common_check_variable_W).
