@@ -23,7 +23,7 @@
 %% -----------------------------------------------------------------------
 %% -----------------------------------------------------------------------
 
-:- begin_tests(context_init).
+:- begin_tests(context_init_defaults).
 
 default_attr_test(Attr, ContextTerm, DefaultTerm) :-
   default_attr_test(Attr, Attr, ContextTerm, DefaultTerm).
@@ -33,6 +33,39 @@ default_attr_test(ContextAttr, ConfigAttr, ContextTerm, DefaultTerm) :-
   call(ContextAttr, Context, ContextTerm),
   default(ConfigAttr, DefaultTerm)
 .
+
+test(init_succeeds) :-
+  init(_Context).
+test(init_module_default, [true(ContextTerm =@= DefaultTerm)]) :-
+  default_attr_test(module, ContextTerm, DefaultTerm).
+test(init_size_default, [true(ContextTerm =@= DefaultTerm)]) :-
+  default_attr_test(size, start_size, ContextTerm, DefaultTerm).
+test(init_size_step_default, [true(ContextTerm =@= DefaultTerm)]) :-
+  default_attr_test(size_step, ContextTerm, DefaultTerm).
+test(init_num_tests_default, [true(ContextTerm =@= DefaultTerm)]) :-
+  default_attr_test(num_tests, ContextTerm, DefaultTerm).
+test(init_tries_calc_predicate_default, [true(ContextTerm =@= DefaultTerm)]) :-
+  default_attr_test(tries_calc_predicate, ContextTerm, DefaultTerm).
+test(init_expected_result_default, [true(ContextTerm =@= DefaultTerm)]) :-
+  default_attr_test(expected_result, ContextTerm, DefaultTerm).
+test(init_test_result_default, fail) :-
+  default_attr_test(test_result, _ContextTerm, _DefaultTerm).
+test(init_binder_default, [true(ContextTerm =@= DefaultTerm)]) :-
+  default_attr_test(binder, ContextTerm, DefaultTerm).
+test(init_shrinker_default, [true(ContextTerm =@= DefaultTerm)]) :-
+  default_attr_test(shrinker, ContextTerm, DefaultTerm).
+test(init_generator_default, [true(ContextTerm =@= DefaultTerm)]) :-
+  default_attr_test(generator, ContextTerm, DefaultTerm).
+% test(init_binding) :-
+%   init(_Context).
+
+:- end_tests(context_init_defaults).
+
+%% -----------------------------------------------------------------------
+%% -----------------------------------------------------------------------
+
+:- begin_tests(context_init_change_config).
+
 chconf_attr_test(Attr, NewAttrTerm, ContextTerm, NewAttrTerm) :-
   chconf_attr_test(Attr, Attr, NewAttrTerm, ContextTerm, NewAttrTerm).
 
@@ -46,43 +79,35 @@ chconf_attr_test(ContextAttr, ConfigAttr, NewAttrTerm, ContextTerm, NewAttrTerm)
   assert(context:configuration(ConfigAttr, OldContextTerm))
 .
 
-test(init_succeeds) :-
-  init(_Context).
-test(init_module_default, [true(ContextTerm =@= DefaultTerm)]) :-
-  default_attr_test(module, ContextTerm, DefaultTerm).
 test(init_module_new_config, [true(ContextTerm =@= NewTerm)]) :-
   NewModule = new_test_module,
   chconf_attr_test(module, NewModule, ContextTerm, NewTerm).
-test(init_size_default, [true(ContextTerm =@= DefaultTerm)]) :-
-  default_attr_test(size, start_size, ContextTerm, DefaultTerm).
 test(init_size_new_config, [true(ContextTerm =@= NewTerm)]) :-
   NewSize = -1,
   chconf_attr_test(size, start_size, NewSize, ContextTerm, NewTerm).
-test(init_size_step_default, [true(ContextTerm =@= DefaultTerm)]) :-
-  default_attr_test(size_step, ContextTerm, DefaultTerm).
 test(init_size_step_new_config, [true(ContextTerm =@= NewTerm)]) :-
   NewSizeStep = -2,
   chconf_attr_test(size_step, NewSizeStep, ContextTerm, NewTerm).
-test(init_num_tests_default, [true(ContextTerm =@= DefaultTerm)]) :-
-  default_attr_test(num_tests, ContextTerm, DefaultTerm).
 test(init_num_tests_new_config, [true(ContextTerm =@= NewTerm)]) :-
   NewNumTests = -3,
   chconf_attr_test(num_tests, NewNumTests, ContextTerm, NewTerm).
-test(init_tries_calc_predicate_default, [true(ContextTerm =@= DefaultTerm)]) :-
-  default_attr_test(tries_calc_predicate, ContextTerm, DefaultTerm).
 test(init_tries_calc_predicate_new_config, [true(ContextTerm =@= NewTerm)]) :-
   NewTriesCalc = -3,
   chconf_attr_test(tries_calc_predicate, NewTriesCalc, ContextTerm, NewTerm).
-test(init_expected_result_default, [true(ContextTerm =@= DefaultTerm)]) :-
-  default_attr_test(expected_result, ContextTerm, DefaultTerm).
 test(init_expected_result_new_config, [true(ContextTerm =@= NewTerm)]) :-
   NewExpectedResult = fail,
   chconf_attr_test(expected_result, NewExpectedResult, ContextTerm, NewTerm).
-% TODO
-% test(init_binding) :-
-%   init(_Context).
+test(init_binder_new_config, [true(ContextTerm =@= NewTerm)]) :-
+  NewNumTests = new_binder,
+  chconf_attr_test(binder, NewNumTests, ContextTerm, NewTerm).
+test(init_shrinker_new_config, [true(ContextTerm =@= NewTerm)]) :-
+  NewTriesCalc = new_shrinker,
+  chconf_attr_test(shrinker, NewTriesCalc, ContextTerm, NewTerm).
+test(init_generator_new_config, [true(ContextTerm =@= NewTerm)]) :-
+  NewExpectedResult = new_generator,
+  chconf_attr_test(generator, NewExpectedResult, ContextTerm, NewTerm).
 
-:- end_tests(context_init).
+:- end_tests(context_init_change_config).
 
 %% -----------------------------------------------------------------------
 %% -----------------------------------------------------------------------
@@ -130,12 +155,55 @@ test(context_new_size, [true({ContextTerm1,ContextTerm2} =@= {DefaultTerm,NewSiz
 test(context_new_expected_result, [true({ContextTerm1,ContextTerm2} =@= {DefaultTerm,NewExpectedResult})]) :-
   NewExpectedResult = fail,
   context_test_new(expected_result, NewExpectedResult, DefaultTerm, ContextTerm1, ContextTerm2).
-% test(context_add_test_result)
-% test(context_add_suite_result)
-% test(context_add_tests_passed)
-% test(context_add_tests_tried)
+%
+test(context_new_expected_result, [true({ContextTerm1,ContextTerm2} =@= {DefaultTerm,NewExpectedResult})]) :-
+  NewExpectedResult = fail,
+  context_test_new(expected_result, NewExpectedResult, DefaultTerm, ContextTerm1, ContextTerm2).
+% test(context_new_expected_result, [true({ContextTerm1,ContextTerm2} =@= {DefaultTerm,NewExpectedResult})]) :-
+%   NewExpectedResult = fail,
+%   context_test_new(expected_result, NewExpectedResult, DefaultTerm, ContextTerm1, ContextTerm2).
+% test(context_new_expected_result, [true({ContextTerm1,ContextTerm2} =@= {DefaultTerm,NewExpectedResult})]) :-
+%   NewExpectedResult = fail,
+%   context_test_new(expected_result, NewExpectedResult, DefaultTerm, ContextTerm1, ContextTerm2).
+% test(context_new_expected_result, [true({ContextTerm1,ContextTerm2} =@= {DefaultTerm,NewExpectedResult})]) :-
+%   NewExpectedResult = fail,
+%   context_test_new(expected_result, NewExpectedResult, DefaultTerm, ContextTerm1, ContextTerm2).
 
 :- end_tests(context_change).
+
+%% -----------------------------------------------------------------------
+%% -----------------------------------------------------------------------
+
+:- begin_tests(context_addition).
+%context_test_add(Attribute, NewValue, DefaultTerm, AttrValue1, AttrValue2) :-
+% context_test_add(Attribute, NewValue, AttrValue1, AttrValue2) :-
+%   context_test_add(Attribute, Attribute, NewValue, AttrValue1, AttrValue2).
+
+%context_test_add(ContextAttr, ConfigAttr, NewValue, DefaultTerm, AttrValue1, AttrValue2) :-
+context_test_add(ContextAttr, NewValue, AttrValue1, AttrValue2) :-
+  init(Context),
+  %% initial context is not expected to have the attributes added
+  not( call(context:ContextAttr, Context, AttrValue1) ),
+  atom_concat(add_, ContextAttr, Add_ContextAttr),
+  call(context:Add_ContextAttr, Context, NewValue, NewContext),
+  call(context:ContextAttr, NewContext, AttrValue2)
+.
+%
+test(context_add_test_result, [true(ContextTerm2 =@= NewTestResult)]) :-
+  NewTestResult = {result, [{level, test_case}, {raw, pass}, {reason, true_goal}]},
+  context_test_add(test_result, NewTestResult, ContextTerm1, ContextTerm2),
+  var(ContextTerm1)
+.
+test(context_add_suite_result, [true(ContextTerm2 =@= NewSuiteResult)]) :-
+  NewSuiteResult = {result, [{level, test_suite}, {raw, error}, {reason, cant_satisfy}, {tests_passed, 0}]},
+  context_test_add(suite_result, NewSuiteResult, ContextTerm1, ContextTerm2),
+  var(ContextTerm1)
+.
+
+%
+% test(context_add_tests_passed)
+% test(context_add_tests_tried)
+:- end_tests(context_addition).
 
 %% -----------------------------------------------------------------------
 %% -----------------------------------------------------------------------
