@@ -11,7 +11,7 @@
 **************************************************************************
 *
 * File:     result.yap
-* Last rev: 2019/04/23
+* Last rev: 2020/03/12
 * mods:
 * comments: PrologCheck result handling module
 *
@@ -48,34 +48,50 @@ result_reason() :=
 */
 
 /**
- * @file   result.yap
+ * @file   result.pl
  * @author Claudio Amaral <coa@dcc.fc.up.pt>
- * @date   Mon Apr 23 17:55 2019
+ * @date   Thu Mar 12 11:55 2020
  *
  * @brief  PrologCheck result handling module.
  *
 */
 :- module(result,
           [
-            create_result/3,
-          %  get/3,
-          %  replace/4,
-          %  add/4,
-            raw/2,
-            reason/2
+            create_result/3
+          % generic methods
+          , get/3%, replace/4, add/4, pop/4
+          , level/2
+          , raw/2
+          , reason/2
+          , tests_passed/2
+          , counterexample/2
           ]
          ).
 
-:- reconsult(generic_records).
+:- use_module(generic_records).
 
 % TODO - documentation
 % TODO - use generic_records to create the result record
+
+% %% Valid result level and attribute pairs
+result_attributes(test_case, level).
+result_attributes(test_case, reason).
+result_attributes(test_case, raw).
+%% suite
+result_attributes(test_suite, level).
+result_attributes(test_suite, raw).
+result_attributes(test_suite, reason).
+result_attributes(test_suite, tests_passed).
+%% Valid result level, reason and attribute trio
+result_conditional_attributes(test_suite, counterexample_found, counterexample).
+result_conditional_attributes(test_suite, failing_evidence_found, counterexample).
+%result_conditional_attributes(_, _, _).
 
 create_result(test_pass, {reason, true_goal}, Result) :-
   Result = {result, [{level, test_case}, {raw, pass}, {reason, true_goal}]}.
 create_result(test_fail, {reason, false_goal}, Result) :-
   Result = {result, [{level, test_case}, {raw, fail}, {reason, false_goal}]}.
-create_result(test_precond_fail, {reason, cant_satisfy}, Result) :- !,
+create_result(test_precond_fail, {reason, cant_satisfy}, Result) :-
   Result = {result, [{level, test_case}, {raw, error}, {reason, cant_satisfy}]}.
 
 create_result(suite_try_limit, {tests_passed, 0}, Result) :- !,
@@ -128,8 +144,8 @@ The free variable _ReplacedRecord_ is built/copied from _ResultRecord_ where
 the value of the _Key_ attribute is replaced with the given _NewValue_.
 This is the generic 'setter' of the result record module.
 */
-replace(Key, ResultRecord, NewValue, ReplacedRecord) :-
-  generic_records:replace(result, Key, ResultRecord, NewValue, ReplacedRecord).
+% replace(Key, ResultRecord, NewValue, ReplacedRecord) :-
+%   generic_records:replace(result, Key, ResultRecord, NewValue, ReplacedRecord).
 
 /** @pred add_(+ _Key_, + _ResultRecord_, ? _NewValue_, ? _ExtendedResultRecord_)
 Predicate that succeeds when the given _ResultRecord_ is unifiable with a
@@ -151,9 +167,16 @@ without _Key_.
 
 This is the generic extension predicate of the result record module.
 */
-add(Key, ResultRecord, NewValue, ExtendedResultRecord) :-
-  generic_records:add(ctx, Key, ResultRecord, NewValue, ExtendedResultRecord).
 
+% add(Key, ResultRecord, NewValue, ExtendedResultRecord) :-
+%   generic_records:add(result, Key, ResultRecord, NewValue, ExtendedResultRecord).
+
+% pop(Key, ResultRecord, Value, SubtractedResultRecord) :-
+%   generic_records:pop(result, Key, ResultRecord, Value, SubtractedResultRecord).
+
+/** @section Level (Level of the result) */
+
+level(Result, LevelResult) :- get(level, Result, LevelResult).
 
 /** @section Raw (Raw result of an execution) */
 
@@ -210,15 +233,23 @@ The free variable in the _Tries_ parameter is bound to the tries property of
 the given _Result_.
 This is a 'getter' of the tries attribute of a result object.
 */
-tries(Result, Tries) :- get(reason, Result, Tries).
+% tries(Result, Tries) :- get(reason, Result, Tries).
+
+/** @section Tests Passed (Number of tests passed in the result of a test suite) */
+
+tests_passed(Result, TestsPassedResult) :- get(tests_passed, Result, TestsPassedResult).
+
+/** @section Counter Example (Evidence that a property does not hold extracted from the result of a test suite) */
+
+counterexample(Result, CounterExample) :- get(counterexample, Result, CounterExample).
 
 
-check(Result, ExpectedRaw, ExpectedReason) :-
-  writeln({check_result_result, result, Result, ExpectedRaw, ExpectedReason}),
-  raw(Result, Raw),
-  reason(Result, Reason),
-  writeln({check_result_result, result, Result, Raw, Reason}),
-  {Raw, Reason} == {ExpectedRaw, ExpectedReason}
-.
+% check(Result, ExpectedRaw, ExpectedReason) :-
+%   writeln({check_result_result, result, Result, ExpectedRaw, ExpectedReason}),
+%   raw(Result, Raw),
+%   reason(Result, Reason),
+%   writeln({check_result_result, result, Result, Raw, Reason}),
+%   {Raw, Reason} == {ExpectedRaw, ExpectedReason}
+% .
 
 /** @} */
